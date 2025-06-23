@@ -5,7 +5,7 @@ const JIRA_EMAIL = process.env.JIRA_EMAIL;
 const JIRA_TOKEN = process.env.JIRA_TOKEN;
 
 exports.handler = async function (event, context) {
-  const jql = 'project=SUP ORDER BY created DESC';
+  const jql = 'project=TB ORDER BY created DESC'; //update with your board name instead of TB
   const url = `https://${JIRA_DOMAIN}/rest/api/3/search?jql=${encodeURIComponent(jql)}&maxResults=1000`;
 
 

@@ -15,7 +15,7 @@ const authHeader = 'Basic ' + Buffer.from(`${JIRA_EMAIL}:${JIRA_TOKEN}`).toStrin
 app.use(express.static('public'));
 
 app.get('/.netlify/functions/jira', async (req, res) => {
-  const jql = 'project=SUP ORDER BY status ASC';
+  const jql = 'project=TB ORDER BY status ASC'; //update with your board name instead of TB
   const url = `https://${JIRA_DOMAIN}/rest/api/3/search?jql=${encodeURIComponent(jql)}`;
   try {
     const jiraRes = await fetch(url, {
