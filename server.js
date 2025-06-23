@@ -9,13 +9,14 @@ const PORT = 3000;
 const JIRA_DOMAIN = process.env.JIRA_DOMAIN;
 const JIRA_EMAIL = process.env.JIRA_EMAIL;
 const JIRA_TOKEN = process.env.JIRA_TOKEN;
+const BOARD_NAME = process.env.BOARD_NAME;
 
 const authHeader = 'Basic ' + Buffer.from(`${JIRA_EMAIL}:${JIRA_TOKEN}`).toString('base64');
 
 app.use(express.static('public'));
 
 app.get('/.netlify/functions/jira', async (req, res) => {
-  const jql = 'project=TB ORDER BY status ASC'; //update with your board name instead of TB
+  const jql = `project=${BOARD_NAME} ORDER BY status ASC`;
   const url = `https://${JIRA_DOMAIN}/rest/api/3/search?jql=${encodeURIComponent(jql)}`;
   try {
     const jiraRes = await fetch(url, {
