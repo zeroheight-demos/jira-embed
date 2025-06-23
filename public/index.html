@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Loading board…</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: #fafafa;
+      color: #333;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    #board-wrapper {
+      overflow-x: auto;
+      padding-bottom: 1rem;
+    }
+
+    #board {
+      display: flex;
+      gap: 1rem;
+      min-width: 600px;
+    }
+
+    .column {
+      flex: 0 0 250px;
+      background: #f3f3f3;
+      border-radius: 6px;
+      padding: 10px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .status-title {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .issue {
+      background: #fff;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    .issue a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .issue a:hover {
+      text-decoration: underline;
+    }
+
+    small {
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="board-title">Loading…</h1>
+  <div id="board-wrapper">
+    <div id="board">Loading issues…</div>
+  </div>
+
+  <script>
+    const JIRA_DOMAIN = 'zeroheight.atlassian.net'; // Replace with your domain
+
+    async function fetchIssues() {
+      try {
+        const res = await fetch('/.netlify/functions/jira');
+        const data = await res.json();
+        if (!data.issues) throw new Error('No issues found');
+        return data.issues;
+      } catch (err) {
+        console.error('Failed to fetch issues:', err);
+        document.getElementById('board').textContent = 'Failed to load issues.';
+        return [];
+      }
+    }
+
+    async function fetchBoardInfo() {
+      try {
+        const res = await fetch('/.netlify/functions/board');
+        return await res.json();
+      } catch (err) {
+        console.error('Failed to fetch board info:', err);
+        return null;
+      }
+    }
+
+    function groupByColumn(issues, columnConfig) {
+      const grouped = {};
+      columnConfig.forEach(col => {
+        grouped[col.name] = [];
+      });
+
+      issues.forEach(issue => {
+        const statusName = issue.fields.status.name;
+        const matchedColumn = columnConfig.find(
+          col => Array.isArray(col.statusNames) && col.statusNames.includes(statusName)
+        );
+        if (matchedColumn) {
+          grouped[matchedColumn.name].push(issue);
+        } else {
+          console.warn(`❌ Could not match status "${statusName}" to any column`);
+        }
+      });
+
+      return grouped;
+    }
+
+    function renderBoard(grouped, columnOrder) {
+      const board = document.getElementById('board');
+      board.innerHTML = '';
+
+      columnOrder.forEach(columnName => {
+        const issues = grouped[columnName] || [];
+        const column = document.createElement('div');
+        column.className = 'column';
+        column.innerHTML = `<div class="status-title">${columnName}</div>`;
+
+        issues.forEach(issue => {
+          const key = issue.key;
+          const url = `https://${JIRA_DOMAIN}/browse/${key}`;
+          const summary = issue.fields.summary;
+          const status = issue.fields.status?.name || '—';
+          const priority = issue.fields.priority?.name || '—';
+          const assignee = issue.fields.assignee?.displayName || 'Unassigned';
+
+          const card = document.createElement('div');
+          card.className = 'issue';
+          card.innerHTML = `
+            <strong><a href="${url}" target="_blank" rel="noopener noreferrer">${key}: ${summary}</a></strong><br>
+            <small><strong>Status:</strong> ${status}<br><strong>Priority:</strong> ${priority}<br><strong>Assignee:</strong> ${assignee}</small>
+          `;
+          column.appendChild(card);
+        });
+
+        board.appendChild(column);
+      });
+    }
+
+    async function init() {
+      const [issues, boardInfo] = await Promise.all([
+        fetchIssues(),
+        fetchBoardInfo()
+      ]);
+
+      if (!boardInfo || !boardInfo.columns) {
+        document.getElementById('board').innerText = 'Failed to load board config.';
+        return;
+      }
+
+      const grouped = groupByColumn(issues, boardInfo.columns);
+      const columnNames = boardInfo.columns.map(c => c.name);
+      renderBoard(grouped, columnNames);
+
+      const boardUrl = `https://${JIRA_DOMAIN}/jira/software/c/projects/${boardInfo.projectKey}/boards/${boardInfo.boardId}`;
+      const titleEl = document.getElementById('board-title');
+      titleEl.innerHTML = `<a href="${boardUrl}" target="_blank" rel="noopener noreferrer">${boardInfo.name}</a>`;
+      document.title = boardInfo.name;
+    }
+
+    init();
+  </script>
+</body>
+</html>

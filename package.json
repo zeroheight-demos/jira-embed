@@ -1,0 +1,19 @@
+{
+  "name": "jira-viewer",
+  "version": "1.0.0",
+  "description": "Simple JIRA board viewer using Netlify Functions and Express dev server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "node-fetch": "^2.7.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
