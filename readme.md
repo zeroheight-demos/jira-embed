@@ -1,6 +1,6 @@
 # 🧩 Jira Board Viewer (Netlify)
 
-This is a simple embedded Jira board viewer that displays issues grouped into columns based on their current status—perfect for dashboards, Notion embeds, and status pages.
+This is a simple embedded Jira board viewer that displays issues grouped into columns based on their current status—perfect for embedding into your zeroheight instance!
 
 ## 🚀 Features
 
