@@ -107,6 +107,8 @@ You can embed the deployed board into any site (e.g. Notion, Confluence) with an
 ></iframe>
 ```
 
+For zeroheight, you can use the embed block by typing `/embed` and pasting in the url to your page
+
 ---
 
 ## 🙋‍♀️ Troubleshooting
